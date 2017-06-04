@@ -1,0 +1,200 @@
+---
+title: "Data Munging in R"
+author: "Krzysztof Wojdalski"
+date: '`r Sys.Date()`'
+output: 
+  slidy_presentation:
+    css: www/style_bank.css
+runtime: shiny
+---
+
+
+
+```{r setup, include=T}
+
+if(!'pacman'%in% installed.packages()) install.packages('pacman')
+require(pacman)
+p_load(magrittr, plyr, dplyr, purrr, nycflights13,ggplot2, knitr, shiny, forcats, ggthemes, tidyr)
+opts_chunk$set(cache = T, message=F, error = F, warning = F, echo= T)
+
+```
+
+## About me
+
+- A graduate at **Faculty of Economic Sciences** and **Faculty of Management** (University of Warsaw)
+- Currently, a student of postgraduate studies in Big Data at **Warsaw University of Technology**
+- Working as a **Quantitative Analyst** on FX trading desk in **mBank S.A.**
+- I do code in **R** (mostly), **Python**, **Scala** 
+- I use **RStudio** with **VIM**, and some other software, but rather rarely (e.g. **MS Visual Studio**, **Sublime Text**)
+
+```{r abt_me_img, include=T, echo=F}
+
+tags$img(src="www/images/quant_fin.jpg",style="position:absolute;top:10vh;height:30vh;width:auto")
+tags$img(src="www/images/mbank_logo.png",style="position:absolute;top:40vh")
+tags$img(src="www/images/skn_ba.jpg",style="position:absolute;top:70vh;left:50vw;height:30vh;width:auto")
+
+```
+
+## Disclaimers
+
+- **tidyr** is a very extensive set of packages. I'm going to present only a **fraction** of its functionalities, things I have found useful **and**/or interesting
+- Most things I have learned are based on my trial-and-error approach, Google Groups, Stackoverflow, and articles I have faced
+- Most things I have learned and I encourage you to do the same. Studies are useful, though!
+- If you have any questions, feel free to ask
+
+
+
+## packages I will use
+* magrittr
+* dplyr
+* plyr
+* purrr
+* forcats
+* ggplot2 (for viz)
+* ... and some others
+
+
+
+## magrittr
+
+* Since few years **magrittr** has become a natural choice for writing code in R
+* Instead of nesting a function into some another function, we can chain them
+* The most important function is **%>%** but I also use **%<>%** and, rather rarely, remaining functions (such **%T>%**)
+* Example:
+
+
+
+```{r magrittr_example}
+data("flights")
+flights <- flights[flights$month>5, ] # normal mode
+flights <- flights %>% .[.$month>5,]  # ctrl/cmd + shift + m for piping
+flights %<>% .[.$month>5,] # super short expression with use of magrittr
+flights %<>% .[.$month>1,] %T>% {print(head(.))} %T>% {flights_sample <<- sample_frac(., 0.01)} #variation
+
+```
+
+
+
+## dplyr
+
+* **dplyr** is a package for managing **data frames**. It enables users to transform their data sets in such a way that it is 
+efficient and easy
+* dplyr has a very consistent grammar. After some training, most functions become very intuitive ( **\*_at**, **\*_if**)
+* the most common functions are as follows:
+    - filter() - for filtering data
+    - slice() - for removing rows we don't want in the final data set
+    - arrange() - for arranging a data frame by some variable. For instance, if we want to work on time series, but we
+    don't want it to be a xts object (a matrix in its essence), we can arrange our data by some variable
+    - select() - for selecting columns, the function is much more flexible and user-friendly, especially for beginners, than base R
+  
+
+
+```{r dplyr_example, include=T}
+data("flights")
+sprintf('%2d', 1000)
+flights_sample <- flights %>% sample_frac(0.01)
+
+f_time_to_POSIXct <- function(x){
+  if(!is.na(x)){ res <- gsub('([0-9]?)([0-9])([0-9]{2})','\\1\\2\\:\\3' ,x = x, perl=T) %>%
+      {paste(Sys.Date(), ., sep=' ')} %>% 
+      as.POSIXct(origin='1970-01-01') %>%
+      format('%H:%M')}else{
+        res <- NA
+      }
+  return(res)
+} 
+
+flights_sample %>% mutate(
+  dep_time = map(dep_time,function(x) f_time_to_POSIXct(x)) %>% flatten(),
+  arr_time = map(arr_time,function(x) f_time_to_POSIXct(x))%>% flatten()
+  )
+map(flights_sample$dep_time,function(x) f_time_to_POSIXct(x)) %>% flatten()
+flights_sample %>% group_by(month) %>% slice(1:2)
+```
+
+## dplyr
+
+* the most common functions are as follows:
+- distinct() - for changing a data set so that a given variable has only distinct values
+    - mutate() (and transmute()) - sometimes more expressive way to do something
+    - summarise() - for summarizing some values. The only constraint it always returns a single value
+    - sample_n() (and sample_frac()) - a very useful function, the result is much easier to achieve than with base R
+    - do() - a more **"pro"** function because it is not as constrained as e.g. summarize function. It's useful when you want to apply a model or quantiles (not a single value) to some subset of data
+* Since version 0.6.0 (released exactly `r as.numeric(Sys.Date()-as.Date('2017-05-11'))` days ago), authors added new features for non-standard evaluation (NSE).
+It's especially improtant for **R developers** who want to develop a production code. For academic research, it's probably neglible in most cases
+
+```{r dplyr_do_example, include=T}
+flights_sample <- flights %>% sample_frac(0.01)
+
+flights_sample %>%
+  group_by(month) %>% 
+  do(quantiles=quantile(.$dep_delay,probs=seq(0,1,by=0.1),na.rm=T)) %>%
+  unnest(quantiles) %>% 
+  
+
+
+
+```
+
+## plyr
+
+* plyr is much more general. It allows us to work with different (all) kinds of data with use of \*\*ply functions, such as:
+    - aaply - requires array input, returns array output
+    - dlply - requires data frame input, returns list output
+    - m_ply - requires data frame with columns as arguments for .fun, returns nothing (but used for side effects)
+* plyr is **way** more consistent than base R packages in terms of both used arguments and behaviour. It is also **faster**
+and has **interesting features** (e.g. progressbar, backend for parallel processing)
+
+
+## plyr Examples
+
+```{r plyr_example, include=T}
+data("flights")
+flights_test <- flights %>% sample_frac(0.01)
+### Data frame returning data frame
+flights_test %>% ddply(.variables = .(year, month), .fun = function(x){ summary(is.na(x$dep_time)) })
+year_month <- paste(flights_test$year,
+      sprintf("%02.0f",flights_test$month), sep='-')  
+#year_month%>% adply(.margins = 1, .fun = function(x){ summary(is.na(x$dep_time)) })
+# Arguments in data frame returning array
+maply(expand.grid(x = 1:5, y = 1:5),.fun = function(x, y){paste(x, y, sep='-')})
+```
+
+
+## purrr
+* It's probably the least known package out of four I have shown you so far, but it's one of my favourites
+
+## forcats
+* Factors are stupid and most people do not like them
+* They are especially messy for visualizations
+* Helper for reordering factor levels
+```{r forcats, include=T}
+
+flights_test <- flights %>% sample_frac(0.01)
+# Ain't cool
+flights_test %>% 
+  mutate(dest = as.factor(dest)) %>% 
+  group_by(dest) %>% 
+  summarize(n=n()) %>% 
+  ggplot(aes(x=dest, y=n))+geom_bar(stat = 'identity')+theme_economist()
+# Now with forcats
+flights_test %>% 
+  mutate(dest = as.factor(dest)) %>% 
+  group_by(dest) %>% 
+  summarize(n=n()) %>% 
+  ggplot(aes(x=forcats::fct_reorder(dest, n,.desc = T), y=n, fill=n))+geom_bar(stat = 'identity')+theme_economist()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  guides(fill=FALSE)+
+  labs(x='Destination', y = 'n')
+
+
+
+
+### Data frame returning data frame
+
+```
+
+
+```{r child = 'src/references.Rmd'}
+```
+

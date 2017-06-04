@@ -1,0 +1,6 @@
+## Good reads on the topic
+
+- https://www.rstudio.com/resources/cheatsheets/
+- https://github.com/tidyverse
+- https://github.com/hadley/ggplot2-book
+- http://r4ds.had.co.nz/pipes.html

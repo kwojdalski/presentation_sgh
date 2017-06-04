@@ -1,0 +1,139 @@
+body{
+	font-family: Verdana; 
+	width:100vw;
+	height:100vh;
+}
+
+div.set1 form.well { 
+background: transparent;
+border: 0px;
+}
+
+section.slide {
+  position: absolute;
+  height: 85vh;
+  /* just for the looks */
+  width:45vw;
+  padding: 0em;
+  border: none;
+}
+
+section.pic {
+  position: absolute;
+  right: 1vw;
+  background-color: transparent;
+  top: 15vh;
+  /* just for the looks */
+  width: 55vw;
+  border: none;
+  background-color: transparent;
+  height: 75vh;
+}
+
+section.main-container {
+width 100vw;
+}
+
+
+title {
+	font-family: Verdana; 
+	size: 3.148vh;
+	font-weight: bold;
+	color:  rgb(43,79,104);
+	line-height: calc(26.40px/1080px)*100vh;
+}
+
+
+h1 {
+	font-family: Verdana; 
+	font-size: 3.148vh;
+	font-weight: bold;
+	color:  rgb(0,136,202);
+	line-height: calc(26.40px/1080px)*100vh;
+}
+
+
+h2 {
+	font-family: Verdana; 
+ 	font-size: 3.148vh;
+	font-weight: bold;
+	color:  rgb(0,136,202);
+
+	line-height: calc(26.40px/1080px)*100vh;
+}
+
+h3 {
+	font-family: Verdana;
+	font-size: 1.296vh;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: bold;
+	color:   #2b4f68;
+	line-height: calc(15.40px/1080px)*100vh;
+}
+
+p {
+	font-family: Verdana;
+	font-size: 2.222vh;
+	font-style: normal;
+	font-variant: normal;
+	font-color #525455;
+}
+
+ul{
+  width: 50vw;
+  top: 10vh;
+  
+}
+iframe {
+  width: 80vw;
+  height: 80vh;
+}
+
+blockquote {
+	font-family: Verdana;
+	font-size: 1.296vh;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 30px;
+}
+pre code{
+  right: 0vw;
+  top: 50vh;
+  width: 40vw;
+  font-size: 2vh;
+}
+
+.sourceCode{
+  float: left;
+  left: 0vw;
+  font-size: 2vh;
+}
+
+
+img {
+    float: right;
+    right: 5vw;
+    top: 10vh;
+    width: 40vw;
+    resize: both;
+    overflow: auto;
+}
+
+#img_footer{
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    width: auto;
+    height: auto;
+}
+
+#img2 {
+position: absolute;
+top: 0vh;
+right: 0.26vw;
+border: 1px solid: #000000;
+width: auto;
+height: auto;
+}
